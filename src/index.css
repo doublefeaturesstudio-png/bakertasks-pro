@@ -1,0 +1,203 @@
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-heading: "Pacifico", cursive;
+  --font-sans: "Nunito", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Warm Bakery Kitchen palette */
+  --color-bg-cream: #FFF8F0;
+  --color-bg-card: #FFFFFF;
+  --color-bg-elevated: #FFFDF5;
+
+  /* Browns */
+  --color-brown-warm: #8B4513;
+  --color-chocolate: #5D4037;
+
+  /* Cake pink */
+  --color-pink-cake: #FFB6C1;
+  --color-pink-cake-bg: #FFF0F3;
+
+  /* Gold */
+  --color-gold: #DAA520;
+  --color-gold-light: #F5E6B8;
+  --color-gold-glow: #DAA520;
+
+  /* Blush */
+  --color-blush: #FADADD;
+  --color-blush-bg: #FFF5F6;
+
+  /* Text */
+  --color-text-primary: #3E2723;
+  --color-text-secondary: #5D4037;
+  --color-text-muted: #8D6E63;
+
+  /* Status */
+  --color-due-red: #E57373;
+  --color-due-red-bg: #FFEBEE;
+  --color-done-green: #66BB6A;
+  --color-done-green-bg: #E8F5E9;
+
+  /* Surfaces */
+  --color-border-soft: #EDE0D4;
+}
+
+/* Luxury Lagos Bakery — sprinkle watermark pattern */
+.bg-sprinkle-pattern {
+  background-image:
+    /* Small round dots (sprinkles) */
+    radial-gradient(3px 3px at 10% 15%, rgba(218, 165, 32, 0.12) 50%, transparent 50%),
+    radial-gradient(2px 2px at 25% 45%, rgba(250, 218, 221, 0.25) 50%, transparent 50%),
+    radial-gradient(3px 3px at 40% 10%, rgba(218, 165, 32, 0.10) 50%, transparent 50%),
+    radial-gradient(2px 2px at 55% 60%, rgba(250, 218, 221, 0.20) 50%, transparent 50%),
+    radial-gradient(3px 3px at 70% 25%, rgba(218, 165, 32, 0.12) 50%, transparent 50%),
+    radial-gradient(2px 2px at 85% 75%, rgba(250, 218, 221, 0.22) 50%, transparent 50%),
+    radial-gradient(3px 3px at 15% 80%, rgba(218, 165, 32, 0.10) 50%, transparent 50%),
+    radial-gradient(2px 2px at 92% 40%, rgba(250, 218, 221, 0.18) 50%, transparent 50%),
+    /* Tiny dash shapes (stardust) */
+    radial-gradient(1.5px 1.5px at 5% 50%, rgba(218, 165, 32, 0.08) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 50% 90%, rgba(218, 165, 32, 0.08) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 95% 5%, rgba(250, 218, 221, 0.15) 50%, transparent 50%);
+  background-size: 200px 200px;
+}
+
+/* Subtle bakery pattern texture (keep for cards) */
+.bg-bakery-pattern {
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(237, 224, 212, 0.3) 1px, transparent 1px),
+    radial-gradient(circle at 80% 20%, rgba(237, 224, 212, 0.3) 1px, transparent 1px),
+    radial-gradient(circle at 40% 80%, rgba(237, 224, 212, 0.3) 1px, transparent 1px),
+    radial-gradient(circle at 90% 70%, rgba(237, 224, 212, 0.3) 1px, transparent 1px),
+    radial-gradient(circle at 10% 90%, rgba(237, 224, 212, 0.3) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Scrollbar hide */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Floating sparkle animation for header */
+@keyframes float-sparkle {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
+  25% { transform: translateY(-10px) scale(1.3); opacity: 1; }
+  50% { transform: translateY(-4px) scale(0.9); opacity: 0.7; }
+  75% { transform: translateY(-14px) scale(1.1); opacity: 0.9; }
+}
+.animate-float-sparkle {
+  animation: float-sparkle 3.5s ease-in-out infinite;
+}
+.animate-float-sparkle-2 {
+  animation: float-sparkle 4.2s ease-in-out 0.8s infinite;
+}
+.animate-float-sparkle-3 {
+  animation: float-sparkle 3.8s ease-in-out 1.6s infinite;
+}
+
+/* Cupcake bounce animation */
+@keyframes cupcake-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  25% { transform: translateY(-6px) scale(1.1) rotate(-8deg); }
+  50% { transform: translateY(-2px) scale(1.05) rotate(5deg); }
+  75% { transform: translateY(-4px) scale(1.08) rotate(-3deg); }
+}
+.animate-cupcake-bounce {
+  animation: cupcake-bounce 2s ease-in-out infinite;
+}
+
+/* Hover lift effect for buttons */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(218, 165, 32, 0.35);
+}
+
+/* Slide-up animation for modals */
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.animate-in-up {
+  animation: slide-up 0.25s ease-out;
+}
+
+/* Toast animations - slide from top with bounce */
+@keyframes toast-in {
+  0% { transform: translateY(-100px) scale(0.85); opacity: 0; }
+  60% { transform: translateY(8px) scale(1.02); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes toast-out {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-40px) scale(0.9); opacity: 0; }
+}
+.animate-toast-in {
+  animation: toast-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.animate-toast-out {
+  animation: toast-out 0.3s ease-in forwards;
+}
+
+/* Count-up reveal animation — number slides up & fades in */
+@keyframes count-reveal {
+  0% { transform: translateY(12px); opacity: 0; }
+  50% { opacity: 0.3; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.animate-count-reveal {
+  animation: count-reveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.animate-count-reveal-2 {
+  animation: count-reveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s forwards;
+}
+
+/* Shine sweep animation for gold CTA buttons */
+@keyframes shine-sweep {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  20% { transform: translateX(100%) skewX(-15deg); }
+  100% { transform: translateX(100%) skewX(-15deg); }
+}
+.btn-shine-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  transform: translateX(-100%) skewX(-15deg);
+  pointer-events: none;
+}
+.btn-shine-sweep:hover::after {
+  animation: shine-sweep 0.7s ease-in-out;
+}
+
+/* Pulse glow for AI button border every 3s */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(218, 165, 32, 0); }
+  30% { box-shadow: 0 0 16px 4px rgba(218, 165, 32, 0.35); }
+  60% { box-shadow: 0 0 8px 2px rgba(218, 165, 32, 0.15); }
+}
+.btn-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Tiny cupcake background pattern at 5% opacity */
+.bg-cupcake-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Ccircle cx='24' cy='18' r='10' fill='%23DAA520' opacity='0.05'/%3E%3Cpath d='M12 18 C12 26 16 32 24 32 C32 32 36 26 36 18' fill='%23DAA520' opacity='0.04'/%3E%3Cpath d='M17 30 L19 36 L29 36 L31 30' fill='%23DAA520' opacity='0.04'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 80px 80px;
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
