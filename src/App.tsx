@@ -26,10 +26,10 @@ type Tab = "dashboard" | "orders" | "ai" | "catalogue";
 interface CatalogueItem {
   id: string;
   name: string;
+  sizes: Record<string, number>;
   description: string;
-  price: number;
-  categories: string[];
-  photo: string; // base64 data URL
+  category: string;
+  photo?: string;
 }
 
 const STORAGE_KEY = "bakerTasksOrders";
@@ -67,30 +67,13 @@ function loadCatalogue(): CatalogueItem[] {
     }
     // Seed demo data for first visit
     const seeds: CatalogueItem[] = [
-      {
-        id: "demo-1",
-        name: "3-Tier Red Velvet Wedding",
-        price: 180000,
-        description: "Vanilla + Red Velvet, Fondant finish",
-        categories: ["Wedding", "Fondant"],
-        photo: "",
-      },
-      {
-        id: "demo-2",
-        name: "7kg Chocolate Birthday",
-        price: 54000,
-        description: "3 layers, Buttercream, Sprinkles",
-        categories: ["Birthday"],
-        photo: "",
-      },
-      {
-        id: "demo-3",
-        name: "Cupcakes 50pcs",
-        price: 45000,
-        description: "Vanilla cupcakes with swirl frosting",
-        categories: ["Cupcakes", "Birthday"],
-        photo: "",
-      },
+      { id: "demo-c1", name: "Single Layer Cake - Vanilla", sizes: { "6inch": 12000, "8inch": 15500, "10inch": 20000 }, description: "Moist vanilla cake. Perfect for birthdays. Add custom text +NGN 1,000", category: "Cakes" },
+      { id: "demo-c2", name: "Single Layer Cake - Chocolate", sizes: { "6inch": 14000, "8inch": 17500, "10inch": 22000 }, description: "Rich chocolate cake with chocolate ganache", category: "Cakes" },
+      { id: "demo-c3", name: "Single Layer Cake - Red Velvet", sizes: { "6inch": 15000, "8inch": 18500, "10inch": 23000 }, description: "Classic red velvet with cream cheese frosting", category: "Cakes" },
+      { id: "demo-c4", name: "Two Tier Cartoon Character Cake", sizes: { "Standard": 60000 }, description: "8inch + 6inch. Includes basic fondant + character topper", category: "Cakes" },
+      { id: "demo-c5", name: "Three Tier Wedding Cake", sizes: { "Standard": 150000 }, description: "6inch + 8inch + 10inch. Vanilla + Red Velvet. Buttercream", category: "Cakes" },
+      { id: "demo-c6", name: "Cupcakes", sizes: { "Pack of 6": 8000, "Pack of 12": 15000 }, description: "Vanilla or Chocolate. Includes frosting", category: "Cakes" },
+      { id: "demo-c7", name: "Cake Parfait", sizes: { "1 Cup": 2500 }, description: "Layers of cake, cream, and toppings in a cup", category: "Desserts" },
     ];
     // Persist seeds so they survive refresh
     localStorage.setItem(CATALOGUE_KEY, JSON.stringify(seeds));
@@ -100,17 +83,17 @@ function loadCatalogue(): CatalogueItem[] {
   }
 }
 
-function shareToWhatsApp(name: string, price: number, categories: string[]) {
-  const formattedPrice = `₦${price.toLocaleString()}`;
-  const tags = categories.length > 0 ? categories.join(", ") : "—";
-  const text = `${name}\nPrice: ${formattedPrice}\nTags: ${tags}\nOrder on BakerTasks Pro`;
+function shareToWhatsApp(item: CatalogueItem, size: string) {
+  const price = item.sizes[size];
+  const safePrice = price ?? 0;
+  const text = `Hi, I want to order: ${item.name} - ${size} - NGN ${safePrice.toLocaleString()}. Date needed: `;
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
 }
 
-function copyShareText(name: string, price: number, categories: string[]): string {
-  const formattedPrice = `₦${price.toLocaleString()}`;
-  const tags = categories.length > 0 ? categories.join(", ") : "—";
-  return `${name}\nPrice: ${formattedPrice}\nTags: ${tags}\nOrder on BakerTasks Pro`;
+function copyShareText(item: CatalogueItem, size: string): string {
+  const price = item.sizes[size];
+  const safePrice = price ?? 0;
+  return `Hi, I want to order: ${item.name} - ${size} - NGN ${safePrice.toLocaleString()}. Date needed: `;
 }
 
 function getTodayISO(): string {
@@ -685,43 +668,48 @@ function AddCatalogueWorkModal({ onClose, onSave, editItem, onDelete }: {
 }) {
   const [name, setName] = useState(editItem?.name ?? "");
   const [description, setDescription] = useState(editItem?.description ?? "");
-  const [price, setPrice] = useState(editItem ? String(editItem.price) : "");
-  const [categories, setCategories] = useState<string[]>(editItem?.categories ?? []);
-  const [photo, setPhoto] = useState<string>(editItem?.photo ?? "");
+  const [sizeLabel, setSizeLabel] = useState("");
+  const [sizePrice, setSizePrice] = useState("");
+  const [sizes, setSizes] = useState<Record<string, number>>(editItem?.sizes ?? {});
+  const [photo, setPhoto] = useState(editItem?.photo ?? "");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
-
-  const allCategories = ["Birthday", "Wedding", "Cupcakes", "Fondant"];
-
-  const toggleCategory = (cat: string) => {
-    setCategories((p) => p.includes(cat) ? p.filter((c) => c !== cat) : [...p, cat]);
-  };
-
   const galleryRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
-
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setPhoto(reader.result as string);
-    reader.readAsDataURL(file);
-    // Reset so the same file can be re-selected
-    e.target.value = "";
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setPhoto(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const addSize = () => {
+    if (!sizeLabel.trim() || !sizePrice.trim()) return;
+    setSizes((p) => ({ ...p, [sizeLabel.trim()]: Number(sizePrice) }));
+    setSizeLabel("");
+    setSizePrice("");
+  };
+
+  const removeSize = (key: string) => {
+    setSizes((p) => {
+      const copy = { ...p };
+      delete copy[key];
+      return copy;
+    });
   };
 
   const handleSave = () => {
-    if (!name.trim() || !price.trim()) {
-      alert("Cake name and price are required!");
+    if (!name.trim() || Object.keys(sizes).length === 0) {
+      alert("Cake name and at least one size are required!");
       return;
     }
     onSave({
       id: editItem?.id ?? crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
       name: name.trim(),
+      sizes,
       description: description.trim(),
-      price: Number(price),
-      categories,
-      photo,
     });
   };
 
@@ -743,8 +731,8 @@ function AddCatalogueWorkModal({ onClose, onSave, editItem, onDelete }: {
         </div>
 
         <div className="space-y-3.5">
-          {/* Photo upload */}
-          <div className="flex flex-col items-center gap-2">
+          {/* PHOTO */}
+          <div>
             {photo ? (
               <div className="w-full">
                 <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-card border border-border-soft">
@@ -893,6 +881,19 @@ function AddCatalogueWorkModal({ onClose, onSave, editItem, onDelete }: {
 }
 
 /* ===================================================================
+   Helpers
+   =================================================================== */
+
+/* Safely get the minimum size price from an item's sizes record.
+   Returns 0 if sizes is empty or undefined. */
+function safeMinSize(item: CatalogueItem): number {
+  const values = Object.values(item.sizes);
+  if (values.length === 0) return 0;
+  const min = Math.min(...values);
+  return Number.isFinite(min) ? min : 0;
+}
+
+/* ===================================================================
    Catalogue Screen
    =================================================================== */
 
@@ -905,6 +906,17 @@ function CatalogueScreen({ onBack, items, onSave, onDelete }: {
   const [showAdd, setShowAdd] = useState(false);
   const [editItem, setEditItem] = useState<CatalogueItem | null>(null);
   const [shareToast, setShareToast] = useState<string | null>(null);
+
+  // SAFE VERSION: Guard against undefined/NaN in sizes
+  const safeMinSize = (item: CatalogueItem): number => {
+    try {
+      const values = Object.values(item.sizes ?? {});
+      if (values.length === 0) return 0;
+      return Math.min(...values);
+    } catch {
+      return 0;
+    }
+  };
 
   return (
     <div className="px-4 pt-6 pb-32">
@@ -961,16 +973,16 @@ function CatalogueScreen({ onBack, items, onSave, onDelete }: {
               {/* Info */}
               <div className="p-3">
                 <p className="font-heading text-sm text-text-primary truncate">{item.name}</p>
-                <p className="font-heading text-sm text-gold font-bold mt-0.5">₦{item.price.toLocaleString()}</p>
+                <p className="font-heading text-sm text-gold font-bold mt-0.5">
+                  ₦{safeMinSize(item).toLocaleString()}+
+                </p>
 
-                {/* Category badges */}
-                {item.categories.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {item.categories.map((cat) => (
-                      <span key={cat} className="text-[9px] font-semibold text-text-muted bg-elevated px-1.5 py-0.5 rounded-full border border-border-soft">
-                        {cat}
-                      </span>
-                    ))}
+                {/* Category badge */}
+                {item.category && (
+                  <div className="mt-1.5">
+                    <span className="text-[9px] font-semibold text-text-muted bg-elevated px-1.5 py-0.5 rounded-full border border-border-soft">
+                      {item.category}
+                    </span>
                   </div>
                 )}
 
@@ -984,7 +996,8 @@ function CatalogueScreen({ onBack, items, onSave, onDelete }: {
                   </button>
                   <button
                     onClick={async () => {
-                      const text = copyShareText(item.name, item.price, item.categories);
+                      const defaultSize = Object.keys(item.sizes)[0];
+                      const text = copyShareText(item, defaultSize);
                       try {
                         await navigator.clipboard.writeText(text);
                       } catch {
@@ -992,7 +1005,7 @@ function CatalogueScreen({ onBack, items, onSave, onDelete }: {
                       }
                       setShareToast("Copied!");
                       setTimeout(() => setShareToast(null), 2000);
-                      shareToWhatsApp(item.name, item.price, item.categories);
+                      shareToWhatsApp(item, defaultSize);
                     }}
                     className="flex-1 text-[10px] font-semibold py-1.5 rounded-lg bg-green-600/10 text-green-600 hover:bg-green-600/20 active:scale-[0.97] transition-all duration-150 cursor-pointer border border-green-600/20"
                   >
