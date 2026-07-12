@@ -671,16 +671,27 @@ function AddCatalogueWorkModal({ onClose, onSave, editItem, onDelete }: {
   const [sizeLabel, setSizeLabel] = useState("");
   const [sizePrice, setSizePrice] = useState("");
   const [sizes, setSizes] = useState<Record<string, number>>(editItem?.sizes ?? {});
+  const [category, setCategory] = useState(editItem?.category ?? "");
   const [photo, setPhoto] = useState(editItem?.photo ?? "");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+  const priceInputRef = useRef<HTMLInputElement>(null);
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image is too large. Please choose one under 5MB.");
+        e.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (ev) => setPhoto(ev.target?.result as string);
+      reader.onerror = () => {
+        alert("Couldn't read that image — try a different one?");
+        e.target.value = "";
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -709,7 +720,9 @@ function AddCatalogueWorkModal({ onClose, onSave, editItem, onDelete }: {
       id: editItem?.id ?? crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
       name: name.trim(),
       sizes,
+      category: category.trim(),
       description: description.trim(),
+      photo: photo || undefined,
     });
   };
 
@@ -807,34 +820,99 @@ function AddCatalogueWorkModal({ onClose, onSave, editItem, onDelete }: {
             />
           </div>
 
-          {/* Price */}
-          <div className="flex items-center gap-3 bg-card rounded-xl px-4 py-3 border border-border-soft focus-within:border-brown-warm/60 transition-all">
-            <span className="text-lg">💰</span>
+          {/* Category — single text input */}
+          <div>
+            <p className="text-text-muted text-[11px] font-sans mb-2">Category:</p>
             <input
-              type="number" value={price} onChange={(e) => setPrice(e.target.value)}
-              placeholder="Price ₦ — e.g. 35000"
-              className="flex-1 bg-transparent text-text-primary placeholder:text-text-muted/50 focus:outline-none text-sm font-sans"
+              type="text"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="e.g. Birthday, Wedding, Custom"
+              className="w-full bg-transparent text-text-primary placeholder:text-text-muted/50 focus:outline-none text-sm font-sans pb-1 border-b border-gold/30 focus:border-gold transition-colors duration-150"
             />
           </div>
 
-          {/* Category tags — multi select */}
+          {/* Sizes & Prices */}
           <div>
-            <p className="text-text-muted text-[11px] font-sans mb-2">Category Tags:</p>
-            <div className="flex flex-wrap gap-2">
-              {allCategories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => toggleCategory(cat)}
-                  className={`text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150 cursor-pointer border ${
-                    categories.includes(cat)
-                      ? "bg-gold text-white border-gold shadow-sm"
-                      : "bg-white text-text-muted hover:text-text-secondary border-gold/30 hover:border-gold/60"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            <p className="text-text-muted text-[11px] font-sans mb-2">Sizes &amp; Prices <span className="text-gold">*</span></p>
+
+            {/* Suggested size quick-tap buttons — auto-fill name + price */}
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {(["6 inch","8 inch","10 inch","12 inch","14 inch","2 Tier","3 Tier","Cupcakes"] as const).map((s) => {
+                const priceGuide: Record<string, number> = {
+                  "6 inch": 12000, "8 inch": 15500, "10 inch": 20000,
+                  "12 inch": 30000, "14 inch": 45000,
+                  "2 Tier": 60000, "3 Tier": 150000, "Cupcakes": 15000,
+                };
+                return (
+                  <button
+                    key={s}
+                    onClick={() => {
+                      setSizeLabel(s);
+                      setSizePrice(String(priceGuide[s]));
+                      setTimeout(() => document.getElementById("size-price-input")?.focus(), 50);
+                    }}
+                    className={`text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border transition-all duration-150 cursor-pointer active:scale-[0.95] ${
+                      sizeLabel === s
+                        ? "bg-gold text-chocolate border-gold/60 shadow-sm"
+                        : "bg-card text-text-muted hover:text-text-secondary border-border-soft hover:border-gold/40"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
+
+            {/* Added sizes list — scrollable */}
+            {Object.keys(sizes).length > 0 && (
+              <div className="max-h-36 overflow-y-auto space-y-1.5 mb-3 pr-1">
+                {Object.entries(sizes).map(([label, price]) => (
+                  <div key={label} className="flex items-center gap-2 bg-card rounded-xl px-3 py-2 border border-border-soft">
+                    <span className="text-sm font-semibold text-text-primary flex-1 truncate">{label} — ₦{price.toLocaleString()}</span>
+                    <button
+                      onClick={() => removeSize(label)}
+                      className="w-6 h-6 flex items-center justify-center text-xs text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150 cursor-pointer active:scale-[0.9] shrink-0"
+                      aria-label={`Remove ${label}`}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add size inputs */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={sizeLabel}
+                onChange={(e) => setSizeLabel(e.target.value)}
+                placeholder="Size name — e.g. 6 inch"
+                className="flex-1 min-w-0 bg-card text-text-primary placeholder:text-text-muted/50 focus:outline-none text-sm font-sans px-3 py-2 rounded-xl border border-border-soft focus:border-brown-warm/60 transition-all"
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); document.getElementById("size-price-input")?.focus(); } }}
+              />
+              <input
+                id="size-price-input"
+                type="number"
+                value={sizePrice}
+                onChange={(e) => setSizePrice(e.target.value)}
+                placeholder="Price"
+                className="w-24 min-w-0 bg-card text-text-primary placeholder:text-text-muted/50 focus:outline-none text-sm font-sans px-3 py-2 rounded-xl border border-border-soft focus:border-brown-warm/60 transition-all"
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSize(); } }}
+              />
+              <button
+                onClick={addSize}
+                disabled={!sizeLabel.trim() || !sizePrice.trim()}
+                className="flex items-center gap-1 text-[11px] font-semibold px-3 py-2 rounded-xl bg-gold text-chocolate hover:shadow-sm active:scale-[0.97] transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border border-gold/30 whitespace-nowrap shrink-0"
+              >
+                + Add
+              </button>
+            </div>
+
+            {Object.keys(sizes).length === 0 && (
+              <p className="text-red-400/70 text-[10px] font-sans mt-1.5">Add at least one size &amp; price</p>
+            )}
           </div>
 
           {/* Save button */}
