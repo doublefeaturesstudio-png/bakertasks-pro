@@ -1,6 +1,7 @@
 # BakerTasks Pro v2.0
 ### Business Manager for Nigerian Bakers | AMD Hackathon 2026
 
+[[License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 [![React](https://img.shields.io/badge/React-18-61DAFB)]()
 [![NativelyAI](https://img.shields.io/badge/Built%20with-NativelyAI-blue)]()
 [![AMD](https://img.shields.io/badge/Powered%20by-AMD%20Cloud-red)]()
